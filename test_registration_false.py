@@ -41,30 +41,83 @@ def fill_registration_form(browser, email, username, password, password_repeat):
 
     input_email = browser.find_element(By.ID, 'id_email')
     input_email.send_keys(email)
-    time.sleep(1)
+    time.sleep(0.1)
 
     input_username = browser.find_element(By.ID, 'id_first_name')
     input_username.send_keys(username)
-    time.sleep(1)
+    time.sleep(0.1)
 
     input_password = browser.find_element(By.ID, 'id_password1')
     input_password.send_keys(password)
-    time.sleep(1)
+    time.sleep(0.1)
 
     input_password_repeat = browser.find_element(By.ID, 'id_password2')
     input_password_repeat.send_keys(password_repeat)
-    time.sleep(1)
+    time.sleep(0.1)
 
     button = WebDriverWait(browser, 10).until(
         EC.presence_of_element_located((By.XPATH, '//button[text()="Зарегистрироваться"]'))
     )
 
-    # Скроллим к элементу с помощью ActionChains
     actions = ActionChains(browser)
     actions.move_to_element(button).perform()
-
-    # Кликаем на элемент
     button.click()
+
+
+def test_email_false(browser):
+    navigate_to_registration_page(browser)
+
+    try:
+        faker = Faker()
+        username = faker.user_name()
+        fill_registration_form(browser, 'asd', username, 'Adin12dva', 'Adin12dva')
+        check_error_message(browser, 'error_1_id_email',
+                            "Введите правильный адрес электронной почты.",
+                            "Тест успешен: Ошибка 'Введённый пароль слишком широко распространён.' отображается.")
+    except Exception as e:
+        print(f"Ошибка во время теста: {e}")
+        raise
+
+def test_email_empty(browser):
+    navigate_to_registration_page(browser)
+
+    try:
+        faker = Faker()
+        username = faker.user_name()
+        fill_registration_form(browser, '', username, 'Adin12dva', 'Adin12dva')
+        check_error_message(browser, 'error_1_id_email',
+                            "Обязательное поле.",
+                            "Тест успешен: Ошибка 'Введённый пароль слишком широко распространён.' отображается.")
+    except Exception as e:
+        print(f"Ошибка во время теста: {e}")
+        raise
+
+def test_registration_username_errors(browser):
+
+    navigate_to_registration_page(browser)
+
+    try:
+        fill_registration_form(browser, 'mikalai@gmail.com', 'Mikalai', 'ChayWnaa', 'ChayWnaa')
+        check_error_message(browser, 'error_1_id_email',
+                            "Пользователь с таким Email уже существует.",
+                            "Тест успешен: Ошибка 'Пользователь с таким именем уже существует.' отображается.")
+    except Exception as e:
+        print(f"Ошибка во время теста: {e}")
+        raise
+
+
+def test_registration_username_empty(browser):
+
+    navigate_to_registration_page(browser)
+
+    try:
+        fill_registration_form(browser, 'mikalai@gmail.com', '', 'Chay1Wnaa', 'Chay1Wnaa')
+        check_error_message(browser, 'error_1_id_first_name',
+                            "Обязательное поле.",
+                            "Тест успешен: Ошибка 'Пользователь с таким именем уже существует.' отображается.")
+    except Exception as e:
+        print(f"Ошибка во время теста: {e}")
+        raise
 
 
 def test_registration_false(browser):
@@ -81,6 +134,7 @@ def test_registration_false(browser):
     except Exception as e:
         print(f"Ошибка во время теста: {e}")
         raise
+
 
 def test_registration_false_repeat(browser):
 
@@ -162,16 +216,4 @@ def test_registration_without_repeat_password(browser):
         print(f"Ошибка во время теста: {e}")
         raise
 
-def test_registration_username_errors(browser):
-
-    navigate_to_registration_page(browser)
-
-    try:
-        fill_registration_form(browser, 'mikalai@gmail.com', 'Mikalai', 'ChayWnaa', 'ChayWnaa')
-        check_error_message(browser, 'error_1_id_email',
-                            "Пользователь с таким Email уже существует.",
-                            "Тест успешен: Ошибка 'Пользователь с таким именем уже существует.' отображается.")
-    except Exception as e:
-        print(f"Ошибка во время теста: {e}")
-        raise
 
