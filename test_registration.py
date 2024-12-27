@@ -1,24 +1,12 @@
 import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from faker import Faker
-import logging
-
-logging.basicConfig(level=logging.INFO)
 
 url = 'https://misleplav.ru'
-
-LOCATORS = {
-    "signup_button": (By.CSS_SELECTOR, '[data-testid="signup"]'),
-    "username_input": (By.ID, 'id_username'),
-    "password_input": (By.ID, 'id_password1'),
-    "password_repeat_input": (By.ID, 'id_password2'),
-    "submit_button": (By.CSS_SELECTOR, '[data-testid="submit-button"]'),
-    "success_alert": (By.CSS_SELECTOR, ".alert.alert-success"),
-    "tutor_checkbox": (By.ID, 'id_is_tutor'),
-}
 
 @pytest.fixture
 def browser():
@@ -26,39 +14,83 @@ def browser():
     yield driver
     driver.quit()
 
-def fill_registration_form(browser, username, password, is_teacher=False):
-    browser.find_element(*LOCATORS["username_input"]).send_keys(username)
-    browser.find_element(*LOCATORS["password_input"]).send_keys(password)
-    browser.find_element(*LOCATORS["password_repeat_input"]).send_keys(password)
-    if is_teacher:
-        browser.find_element(*LOCATORS["tutor_checkbox"]).click()
-    browser.find_element(*LOCATORS["submit_button"]).click()
-
-def check_success_message(browser, expected_message):
-    alert = browser.find_element(*LOCATORS["success_alert"])
-    assert expected_message in alert.text, \
-        f"Сообщение отличается: ожидалось '{expected_message}', получено '{alert.text}'"
-    logging.info("Сообщение о регистрации подтверждено.")
-
-@pytest.mark.registration
-def test_registration(browser):
+def navigate_to_registration_page(browser):
     browser.get(url)
+    try:
+        btn_registr = WebDriverWait(browser, 10).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, "fas.fa-user-plus.me-1"))
+        )
+        btn_registr.click()
+        print("Тест успешен: Кнопка Register нажата.")
+    except Exception as e:
+        raise Exception(f"Ошибка при нажатии на кнопку регистрации: {e}")
+
+def test_registration_correct(browser):
+    navigate_to_registration_page(browser)
+
     faker = Faker()
-    username = faker.user_name()
+    email = faker.email()
     password = faker.password()
 
-    WebDriverWait(browser, 10).until(EC.element_to_be_clickable(LOCATORS["signup_button"])).click()
-    fill_registration_form(browser, username, password)
-    check_success_message(browser, 'Вы успешно зарегистрировались!')
+    input_email = WebDriverWait(browser, 10).until(
+        EC.presence_of_element_located((By.ID, "id_email"))
+    )
+    input_email.send_keys(email)
 
-@pytest.mark.registration
+    input_password = browser.find_element(By.ID, "id_password1")
+    input_password.send_keys(password)
+
+    input_password_repeat = browser.find_element(By.ID, "id_password2")
+    input_password_repeat.send_keys(password)
+
+    button = WebDriverWait(browser, 10).until(
+        EC.presence_of_element_located((By.XPATH, '//button[text()="Зарегистрироваться"]'))
+    )
+
+    actions = ActionChains(browser)
+    actions.move_to_element(button).perform()
+    button.click()
+
+    text_element = WebDriverWait(browser, 5).until(
+        EC.visibility_of_element_located((By.TAG_NAME, "h2"))
+    )
+    assert "Приветствуем тебя!" in text_element.text
+
 def test_registration_teacher(browser):
-    browser.get(url)
+    navigate_to_registration_page(browser)
+
     faker = Faker()
-    username = faker.user_name()
+    email = faker.email()
     password = faker.password()
 
-    WebDriverWait(browser, 10).until(EC.element_to_be_clickable(LOCATORS["signup_button"])).click()
-    fill_registration_form(browser, username, password, is_teacher=True)
-    check_success_message(browser, 'Вы успешно зарегистрировались, а так же получаете бесплатный премиум на 3 дня!')
+    input_email = WebDriverWait(browser, 10).until(
+        EC.presence_of_element_located((By.ID, "id_email"))
+    )
+    input_email.send_keys(email)
 
+    input_password = browser.find_element(By.ID, "id_password1")
+    input_password.send_keys(password)
+
+    input_password_repeat = browser.find_element(By.ID, "id_password2")
+    input_password_repeat.send_keys(password)
+
+    input_checkbox = WebDriverWait(browser, 10).until(
+        EC.presence_of_element_located((By.ID, "id_is_tutor"))
+    )
+
+    actions = ActionChains(browser)
+    actions.move_to_element(input_checkbox).perform()
+    input_checkbox.click()
+
+    button = WebDriverWait(browser, 10).until(
+        EC.presence_of_element_located((By.XPATH, '//button[text()="Зарегистрироваться"]'))
+    )
+
+    actions = ActionChains(browser)
+    actions.move_to_element(button).perform()
+    button.click()
+
+    text_element = WebDriverWait(browser, 5).until(
+        EC.visibility_of_element_located((By.TAG_NAME, "h2"))
+    )
+    assert "Приветствуем тебя, репетитор!" in text_element.text
