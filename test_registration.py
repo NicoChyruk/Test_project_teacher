@@ -1,18 +1,10 @@
-import pytest
-from selenium import webdriver
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from faker import Faker
 
 url = 'https://misleplav.ru'
-
-@pytest.fixture
-def browser():
-    driver = webdriver.Chrome()
-    yield driver
-    driver.quit()
 
 def navigate_to_registration_page(browser):
     browser.get(url)
@@ -25,10 +17,9 @@ def navigate_to_registration_page(browser):
     except Exception as e:
         raise Exception(f"Ошибка при нажатии на кнопку регистрации: {e}")
 
-def test_registration_correct(browser):
+def test_registration_correct(browser, faker):
     navigate_to_registration_page(browser)
 
-    faker = Faker()
     email = faker.email()
     password = faker.password()
 
@@ -52,14 +43,13 @@ def test_registration_correct(browser):
     button.click()
 
     text_element = WebDriverWait(browser, 5).until(
-        EC.visibility_of_element_located((By.TAG_NAME, "h2"))
+        EC.visibility_of_element_located((By.TAG_NAME, "h1"))
     )
     assert "Приветствуем тебя!" in text_element.text
 
-def test_registration_teacher(browser):
+def test_registration_teacher(browser, faker):
     navigate_to_registration_page(browser)
 
-    faker = Faker()
     email = faker.email()
     password = faker.password()
 
@@ -91,6 +81,6 @@ def test_registration_teacher(browser):
     button.click()
 
     text_element = WebDriverWait(browser, 5).until(
-        EC.visibility_of_element_located((By.TAG_NAME, "h2"))
+        EC.visibility_of_element_located((By.TAG_NAME, "h1"))
     )
-    assert "Приветствуем тебя, репетитор!" in text_element.text
+    assert "Добро пожаловать, репетитор!" in text_element.text

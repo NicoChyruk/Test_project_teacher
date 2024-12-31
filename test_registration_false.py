@@ -1,5 +1,4 @@
-import pytest
-from selenium import webdriver
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
@@ -8,12 +7,6 @@ from faker import Faker
 import time
 
 url = 'https://misleplav.ru'
-
-@pytest.fixture
-def browser():
-    driver = webdriver.Chrome()
-    yield driver
-    driver.quit()
 
 def navigate_to_registration_page(browser):
     browser.get(url)
