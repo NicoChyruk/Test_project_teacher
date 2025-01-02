@@ -79,7 +79,6 @@ def test_empty_password(browser):
 
     login = browser.find_element(By.XPATH, '//button[@type="submit"]')
     login.click()
-
     error_text_empty_password = browser.find_element(By.ID, 'error_1_id_username')
     assert "Обязательное поле." in error_text_empty_password.text
 
